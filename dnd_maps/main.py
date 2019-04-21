@@ -37,7 +37,3 @@ def view(img: Path):
 
 def main():
     view(getall_images()[0])
-
-
-
-
