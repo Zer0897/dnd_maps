@@ -19,36 +19,75 @@ def getall_images():
     return list(image_dir.rglob('*.png'))
 
 
-def view(img: Path):
-    viewer = ImageViewer(img)
-    viewer.mainloop()
+def load_image(infilename):
+    img = Image.open(infilename)
 
 
-def get_square(xfrom, xto, yfrom, yto, data):
-    out = []
-    for row in data[yfrom:yto]:
-        out.append(row[xfrom:xto])
-    return out
+
+class Display:
+
+    __slots__ = ('data',)
+
+    def show(self, prcnt=1):
+        height = round(self.image.height * prcnt)
+        width = round(self.image.width * prcnt)
+
+        image = self.image.resize((width, height), resample=Image.NEAREST)
+
+        image.show()
+
+
+class Square(Display):
+    pass
+
+
+class Map(Display):
+
+    def __init__(self, fp: Path, dim: ImageDim):
+        self.fp = fp
+        self.dimensions = dim.value
+        self.image = Image.open(self.fp)
+        self.data = self.__parse_data()
+
+    def __parse_data(self):
+        data = np.asarray(img, dtype="int32", order='F')
+        return np.transpose(data, (1,0,2))
+        # return np.array(
+        #     self.image.getdata()).reshape(self.image.height, self.image.width, 3
+        # )
+
+    @property
+    def name(self):
+        return self.fp.stem
+
 
 
 def main():
-    images = {fp.stem: fp for fp in getall_images()}
-    fp = images.get('sample_1')
-    dim = ImageDim['sample_128']
+    maps = {fp.stem: fp for fp in getall_images()}
+    fp = maps['sample_1']
+
+    samplemap = Map(fp, ImageDim.sample_128)
+    samplemap.show()
+    # print(samplemap.show())
+
+
+    # Image.fromarray(data[0]).show()
 
     #TODO: Border Offset (this area is ignored)
-    borders = [0,0,0,0]
+    # borders = [0,0,0,0]
 
-    img = Image.open(fp)
-    imgdata = chunked(img.getdata(), 128)
-    columns = (img.width - borders[0] - borders[1]) / 128
-    rows = (img.width - borders[2] - borders[3]) / 128
+    # data = load_image(fp)
 
-    data = [col for col in chunked(imgdata, int(columns))]
-    square = get_square(0, 128, 0, 128, data)
-    square = list(chain(*square))
-    # new = Image.fromarray()
-    print(bytearray('foo', 'utf-8'))
+
+
+    # imgdata = chunked(img.getdata(), 128)
+    # columns = (img.width - borders[0] - borders[1]) / 128
+    # rows = (img.width - borders[2] - borders[3]) / 128
+
+    # data = [col for col in chunked(imgdata, int(columns))]
+    # square = get_square(0, 128, 0, 128, data)
+    # new = Image.fromarray(, 'RGB')
+
     # new.show()
 
 
